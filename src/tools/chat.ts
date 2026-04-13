@@ -206,7 +206,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
   }, async (params) => {
     try {
-      const body: Record<string, unknown> = { chatId: params.chat_id };
+      const body: Record<string, unknown> = { chat: params.chat_id };
       if (params.text) body.text = params.text;
       if (params.blocks) body.blocks = params.blocks;
       if (params.poll) body.poll = params.poll;
@@ -224,7 +224,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const body: Record<string, unknown> = { chatId: params.chat_id, messageId: params.message_id };
+      const body: Record<string, unknown> = { chat: params.chat_id, messageId: params.message_id };
       if (params.text) body.text = params.text;
       if (params.blocks) body.blocks = params.blocks;
       const data = await roamPost<unknown>("/chat.update", body, V0);
@@ -239,7 +239,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      await roamPost<unknown>("/chat.delete", { chatId: params.chat_id, messageId: params.message_id }, V0);
+      await roamPost<unknown>("/chat.delete", { chat: params.chat_id, messageId: params.message_id }, V0);
       return { content: [{ type: "text" as const, text: `Message ${params.message_id} deleted.` }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -251,7 +251,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      await roamPost<unknown>("/chat.typing", { chatId: params.chat_id }, V0);
+      await roamPost<unknown>("/chat.typing", { chat: params.chat_id }, V0);
       return { content: [{ type: "text" as const, text: "Typing indicator sent." }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -263,7 +263,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const q: Record<string, unknown> = { chatId: params.chat_id, limit: params.limit };
+      const q: Record<string, unknown> = { chat: params.chat_id, limit: params.limit };
       if (params.before) q.before = params.before;
       if (params.after) q.after = params.after;
       if (params.cursor) q.cursor = params.cursor;
@@ -279,7 +279,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      await roamPost<unknown>("/reaction.add", { chatId: params.chat_id, messageId: params.message_id, emoji: params.emoji }, V0);
+      await roamPost<unknown>("/reaction.add", { chat: params.chat_id, messageId: params.message_id, emoji: params.emoji }, V0);
       return { content: [{ type: "text" as const, text: `Reaction :${params.emoji}: added.` }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -374,7 +374,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const data = await roamPost<unknown>("/group.rename", { groupId: params.group_id, name: params.name }, V0);
+      const data = await roamPost<unknown>("/group.rename", { group: params.group_id, name: params.name }, V0);
       return { content: [{ type: "text" as const, text: json(data) }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -386,7 +386,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      await roamPost<unknown>("/group.archive", { groupId: params.group_id }, V0);
+      await roamPost<unknown>("/group.archive", { group: params.group_id }, V0);
       return { content: [{ type: "text" as const, text: `Group ${params.group_id} archived.` }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -398,7 +398,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const q: Record<string, unknown> = { groupId: params.group_id, limit: params.limit };
+      const q: Record<string, unknown> = { group: params.group_id, limit: params.limit };
       if (params.cursor) q.cursor = params.cursor;
       const data = await roamGet<unknown>("/group.members", q, V0);
       return { content: [{ type: "text" as const, text: json(data) }] };
@@ -412,7 +412,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const body: Record<string, unknown> = { groupId: params.group_id };
+      const body: Record<string, unknown> = { group: params.group_id };
       if (params.members) body.members = params.members;
       if (params.admins) body.admins = params.admins;
       const data = await roamPost<unknown>("/group.add", body, V0);
@@ -427,7 +427,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const data = await roamPost<unknown>("/group.remove", { groupId: params.group_id, members: params.members }, V0);
+      const data = await roamPost<unknown>("/group.remove", { group: params.group_id, members: params.members }, V0);
       return { content: [{ type: "text" as const, text: json(data) }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
