@@ -1,6 +1,6 @@
 {
   "name": "roam-mcp-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MCP server for Roam HQ API integration — messaging, groups, recordings, on-air events, and chat",
   "type": "module",
   "main": "dist/index.js",
