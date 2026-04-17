@@ -93,7 +93,7 @@ export function registerOnAirTools(server: McpServer): void {
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const data = await roamGet<unknown>("/onair.event.info", { eventId: params.event_id });
+      const data = await roamGet<unknown>("/onair.event.info", { id: params.event_id });
       return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
     } catch (error) { return { content: [{ type: "text" as const, text: handleApiError(error) }] }; }
   });
@@ -142,7 +142,7 @@ export function registerOnAirTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const body: Record<string, unknown> = { eventId: params.event_id };
+      const body: Record<string, unknown> = { id: params.event_id };
       if (params.title) body.title = params.title;
       if (params.description) body.description = params.description;
       if (params.start) body.start = params.start;
@@ -163,7 +163,7 @@ export function registerOnAirTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      await roamPost<unknown>("/onair.event.cancel", { eventId: params.event_id });
+      await roamPost<unknown>("/onair.event.cancel", { id: params.event_id });
       return { content: [{ type: "text" as const, text: `Event ${params.event_id} cancelled.` }] };
     } catch (error) { return { content: [{ type: "text" as const, text: handleApiError(error) }] }; }
   });
@@ -177,7 +177,7 @@ export function registerOnAirTools(server: McpServer): void {
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const data = await roamGet<unknown>("/onair.guest.info", { guestId: params.guest_id });
+      const data = await roamGet<unknown>("/onair.guest.info", { id: params.guest_id });
       return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
     } catch (error) { return { content: [{ type: "text" as const, text: handleApiError(error) }] }; }
   });
@@ -221,7 +221,7 @@ export function registerOnAirTools(server: McpServer): void {
   }, async (params) => {
     try {
       const data = await roamPost<unknown>("/onair.guest.update", {
-        guestId: params.guest_id,
+        id: params.guest_id,
         status: params.status,
       });
       return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
@@ -235,7 +235,7 @@ export function registerOnAirTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      await roamPost<unknown>("/onair.guest.remove", { guestId: params.guest_id });
+      await roamPost<unknown>("/onair.guest.remove", { id: params.guest_id });
       return { content: [{ type: "text" as const, text: `Guest ${params.guest_id} removed.` }] };
     } catch (error) { return { content: [{ type: "text" as const, text: handleApiError(error) }] }; }
   });

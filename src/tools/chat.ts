@@ -43,14 +43,14 @@ const ChatPostSchema = z.object({
 
 const ChatUpdateSchema = z.object({
   chat_id: z.string().describe("Chat / group address ID"),
-  message_id: z.string().describe("Message ID to update"),
+  message_id: z.string().describe("Message timestamp (Roam's message identifier — the `timestamp` value returned from chat.post)"),
   text: z.string().optional().describe("Updated text"),
   blocks: z.array(z.unknown()).optional().describe("Updated blocks"),
 }).strict();
 
 const ChatDeleteSchema = z.object({
   chat_id: z.string().describe("Chat / group address ID"),
-  message_id: z.string().describe("Message ID to delete"),
+  message_id: z.string().describe("Message timestamp (Roam's message identifier — the `timestamp` value returned from chat.post)"),
 }).strict();
 
 const ChatTypingSchema = z.object({
@@ -67,7 +67,7 @@ const ChatHistorySchema = z.object({
 
 const ReactionAddSchema = z.object({
   chat_id: z.string().describe("Chat / group address ID"),
-  message_id: z.string().describe("Message ID"),
+  message_id: z.string().describe("Message timestamp (Roam's message identifier — the `timestamp` value returned from chat.post)"),
   emoji: z.string().describe("Emoji shortcode, e.g. thumbsup"),
 }).strict();
 
@@ -143,7 +143,7 @@ const MeetingLinkInfoSchema = z.object({
 
 const MeetingLinkUpdateSchema = z.object({
   meeting_link_id: z.string().describe("Meeting link ID"),
-  title: z.string().optional().describe("Updated title"),
+  name: z.string().describe("Updated meeting name (required by Roam API)"),
 }).strict();
 
 const TranscriptListSchema = z.object({
@@ -224,7 +224,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const body: Record<string, unknown> = { chat: params.chat_id, messageId: params.message_id };
+      const body: Record<string, unknown> = { chat: params.chat_id, timestamp: params.message_id };
       if (params.text) body.text = params.text;
       if (params.blocks) body.blocks = params.blocks;
       const data = await roamPost<unknown>("/chat.update", body, V0);
@@ -239,7 +239,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      await roamPost<unknown>("/chat.delete", { chat: params.chat_id, messageId: params.message_id }, V0);
+      await roamPost<unknown>("/chat.delete", { chat: params.chat_id, timestamp: params.message_id }, V0);
       return { content: [{ type: "text" as const, text: `Message ${params.message_id} deleted.` }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -279,7 +279,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      await roamPost<unknown>("/reaction.add", { chat: params.chat_id, messageId: params.message_id, emoji: params.emoji }, V0);
+      await roamPost<unknown>("/reaction.add", { chat: params.chat_id, timestamp: params.message_id, name: params.emoji }, V0);
       return { content: [{ type: "text" as const, text: `Reaction :${params.emoji}: added.` }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -307,7 +307,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const data = await roamGet<unknown>("/user.info", { userId: params.user_id }, V0);
+      const data = await roamGet<unknown>("/user.info", { id: params.user_id }, V0);
       return { content: [{ type: "text" as const, text: json(data) }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -331,7 +331,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const data = await roamGet<unknown>("/addr.info", { addressId: params.address_id }, V0);
+      const data = await roamGet<unknown>("/addr.info", { addr: params.address_id }, V0);
       return { content: [{ type: "text" as const, text: json(data) }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -374,7 +374,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const data = await roamPost<unknown>("/group.rename", { group: params.group_id, name: params.name }, V0);
+      const data = await roamPost<unknown>("/group.rename", { id: params.group_id, name: params.name }, V0);
       return { content: [{ type: "text" as const, text: json(data) }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -386,7 +386,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      await roamPost<unknown>("/group.archive", { group: params.group_id }, V0);
+      await roamGet<unknown>("/group.archive", { id: params.group_id }, V0);
       return { content: [{ type: "text" as const, text: `Group ${params.group_id} archived.` }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -469,7 +469,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const data = await roamPost<unknown>("/meetinglink.info", { meetingLinkId: params.meeting_link_id }, V0);
+      const data = await roamPost<unknown>("/meetinglink.info", { id: params.meeting_link_id }, V0);
       return { content: [{ type: "text" as const, text: json(data) }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -481,8 +481,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const body: Record<string, unknown> = { meetingLinkId: params.meeting_link_id };
-      if (params.title) body.title = params.title;
+      const body: Record<string, unknown> = { id: params.meeting_link_id, name: params.name };
       const data = await roamPost<unknown>("/meetinglink.update", body, V0);
       return { content: [{ type: "text" as const, text: json(data) }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
@@ -511,7 +510,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const data = await roamGet<unknown>("/transcript.info", { transcriptId: params.transcript_id }, V0);
+      const data = await roamGet<unknown>("/transcript.info", { id: params.transcript_id }, V0);
       return { content: [{ type: "text" as const, text: json(data) }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
@@ -523,7 +522,7 @@ export function registerChatTools(server: McpServer): void {
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   }, async (params) => {
     try {
-      const data = await roamPost<unknown>("/transcript.prompt", { transcriptId: params.transcript_id, prompt: params.prompt }, V0);
+      const data = await roamPost<unknown>("/transcript.prompt", { id: params.transcript_id, prompt: params.prompt }, V0);
       return { content: [{ type: "text" as const, text: json(data) }] };
     } catch (e) { return { content: [{ type: "text" as const, text: handleApiError(e) }] }; }
   });
